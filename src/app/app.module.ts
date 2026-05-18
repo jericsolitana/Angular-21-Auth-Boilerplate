@@ -12,7 +12,7 @@ import { AccountService } from './_services';
 import { AppComponent } from './app.component';
 import { AlertComponent } from './_components';
 import { HomeComponent } from './home';
-
+import { environment } from '@environments/environment';
 @NgModule({
     imports: [
         BrowserModule,
@@ -27,13 +27,12 @@ import { HomeComponent } from './home';
     ],
 
     providers: [
-         { provide: APP_INITIALIZER, useFactory: appInitializer, multi: true, deps: [AccountService] },
-        { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
-        { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
+    { provide: APP_INITIALIZER, useFactory: appInitializer, multi: true, deps: [AccountService] },
+    { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
+    { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
 
-        // provider used to create fake backend
-        fakeBackendProvider
-    ],
+    ...(environment.production ? [] : [fakeBackendProvider])
+],
 
     bootstrap: [AppComponent]
 })
