@@ -38,6 +38,7 @@ export class ResetPasswordComponent implements OnInit {
     });
 
     const token = this.route.snapshot.queryParams['token'];
+    console.log('Token from URL:', token);
     
     // Save token first before clearing URL
     this.token = token;
