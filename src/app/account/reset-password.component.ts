@@ -29,7 +29,7 @@ export class ResetPasswordComponent implements OnInit {
         private alertService: AlertService
     ) { }
 
-   ngOnInit() {
+  ngOnInit() {
     this.form = this.formBuilder.group({
         password: ['', [Validators.required, Validators.minLength(6)]],
         confirmPassword: ['', Validators.required],
@@ -40,10 +40,7 @@ export class ResetPasswordComponent implements OnInit {
     const token = this.route.snapshot.queryParams['token'];
     console.log('Token from URL:', token);
     
-    // Save token first before clearing URL
     this.token = token;
-
-    // Clear token from URL
     this.router.navigate([], { relativeTo: this.route, replaceUrl: true });
 
     if (!token) {
@@ -51,16 +48,23 @@ export class ResetPasswordComponent implements OnInit {
         return;
     }
 
-    this.accountService.validateResetToken(token)
-        .pipe(first())
-        .subscribe({
-            next: () => {
-                this.tokenStatus = TokenStatus.Valid;
-            },
-            error: () => {
-                this.tokenStatus = TokenStatus.Invalid;
-            }
-        });
+    try {
+        this.accountService.validateResetToken(token)
+            .pipe(first())
+            .subscribe({
+                next: () => {
+                    console.log('Token valid!');
+                    this.tokenStatus = TokenStatus.Valid;
+                },
+                error: (err) => {
+                    console.log('Token invalid:', err);
+                    this.tokenStatus = TokenStatus.Invalid;
+                }
+            });
+    } catch(e) {
+        console.error('Exception:', e);
+        this.tokenStatus = TokenStatus.Invalid;
+    }
 }
 
 
