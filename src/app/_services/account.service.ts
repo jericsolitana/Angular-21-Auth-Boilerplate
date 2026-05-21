@@ -72,7 +72,7 @@ export class AccountService {
         return this.http.post(`${baseUrl}/reset-password`, { token, password, confirmPassword });
     }
 
-    getAlL() {
+    getAll() {
         return this.http.get<Account[]>(baseUrl);
     }
 

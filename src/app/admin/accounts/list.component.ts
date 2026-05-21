@@ -30,7 +30,7 @@ export class ListComponent implements OnInit, OnDestroy {
 
         }, 10000);
 
-        this.accountService.getAlL()
+        this.accountService.getAll()
             .pipe(
                 first(),
                 finalize(() => {
