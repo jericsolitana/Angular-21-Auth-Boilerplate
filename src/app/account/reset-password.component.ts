@@ -42,7 +42,7 @@ export class ResetPasswordComponent implements OnInit {
         console.log('Token from URL:', token);
         
         this.token = token;
-        this.router.navigate([], { relativeTo: this.route, replaceUrl: true });
+       // this.router.navigate([], { relativeTo: this.route, replaceUrl: true });
 
         if (!token) {
             this.tokenStatus = TokenStatus.Invalid;
