@@ -23,60 +23,56 @@ export class UpdateComponent implements OnInit {
         private alertService: AlertService
     ) { }
 
-  ngOnInit() {
-    this.accountService.account.subscribe(account => {
-        console.log('Account from observable:', account);
+    ngOnInit() {
+        const account = this.accountService.accountValue;
+        
         if (!account) {
             this.router.navigate(['/account/login']);
             return;
         }
+        
         this.account = account;
-        if (!this.form) {
-            this.form = this.formBuilder.group({
-                title: [account.title, Validators.required],
-                firstName: [account.firstName, Validators.required],
-                lastName: [account.lastName, Validators.required],
-                email: [account.email, [Validators.required, Validators.email]],
-                password: ['', [Validators.minLength(6)]],
-                confirmPassword: ['']
-            }, {
-                validators: MustMatch('password', 'confirmPassword')
-            });
-        }
-    });
-}
-        // convenience getter for easy access to form fields
+
+        this.form = this.formBuilder.group({
+            title: [this.account.title, Validators.required],
+            firstName: [this.account.firstName, Validators.required],
+            lastName: [this.account.lastName, Validators.required],
+            email: [this.account.email, [Validators.required, Validators.email]],
+            password: ['', [Validators.minLength(6)]],
+            confirmPassword: ['']
+        }, {
+            validators: MustMatch('password', 'confirmPassword')
+        });
+    }
+
     get f() { return this.form.controls; }
 
     onSubmit() {
-    this.submitted = true;
-    this.alertService.clear();
-    if (this.form.invalid) return;
+        this.submitted = true;
+        this.alertService.clear();
+        if (this.form.invalid) return;
 
-    // Get ID from accountService or from JWT
-    const id = this.accountService.accountValue?.id;
-    console.log('Account ID:', id);
-    
-    if (!id) {
-        this.alertService.error('Session expired, please login again');
-        this.router.navigate(['/account/login']);
-        return;
+        const id = this.account?.id;
+        if (!id) {
+            this.alertService.error('Session expired, please login again');
+            this.router.navigate(['/account/login']);
+            return;
+        }
+
+        this.submitting = true;
+        this.accountService.update(id, this.form.value)
+            .pipe(first())
+            .subscribe({
+                next: () => {
+                    this.alertService.success('Update successful', { keepAfterRouteChange: true });
+                    this.router.navigate(['../'], { relativeTo: this.route });
+                },
+                error: error => {
+                    this.alertService.error(error);
+                    this.submitting = false;
+                }
+            });
     }
-
-    this.submitting = true;
-    this.accountService.update(id, this.form.value)
-        .pipe(first())
-        .subscribe({
-            next: () => {
-                this.alertService.success('Update successful', { keepAfterRouteChange: true });
-                this.router.navigate(['../'], { relativeTo: this.route });
-            },
-            error: error => {
-                this.alertService.error(error);
-                this.submitting = false;
-            }
-        });
-}
 
     onDelete() {
         if (confirm('Are you sure?')) {
@@ -84,7 +80,7 @@ export class UpdateComponent implements OnInit {
             this.accountService.delete(this.account.id!)
                 .pipe(first())
                 .subscribe(() => {
-                    this.alertService.success('Account deleted successfully', { keepAfterRouteChange: true }) ;
+                    this.alertService.success('Account deleted successfully', { keepAfterRouteChange: true });
                 });
         }
     }
