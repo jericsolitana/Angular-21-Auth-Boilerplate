@@ -29,31 +29,38 @@ export class ResetPasswordComponent implements OnInit {
         private alertService: AlertService
     ) { }
 
-    ngOnInit() {
-        this.form = this.formBuilder.group({
-            password: ['', [Validators.required, Validators.minLength(6)]],
-            confirmPassword: ['', Validators.required],
-        }, {
-            validators: MustMatch('password', 'confirmPassword')
-        });
+   ngOnInit() {
+    this.form = this.formBuilder.group({
+        password: ['', [Validators.required, Validators.minLength(6)]],
+        confirmPassword: ['', Validators.required],
+    }, {
+        validators: MustMatch('password', 'confirmPassword')
+    });
 
-        const token = this.route.snapshot.queryParams['token'];
+    const token = this.route.snapshot.queryParams['token'];
+    
+    // Save token first before clearing URL
+    this.token = token;
 
-        this.router.navigate([], { relativeTo: this.route, replaceUrl: true }); // clear query params from url
+    // Clear token from URL
+    this.router.navigate([], { relativeTo: this.route, replaceUrl: true });
 
-        // ✅ Validate FIRST, only clear URL after success
-        this.accountService.validateResetToken(token)
-            .pipe(first())
-            .subscribe({
-                next: () => {
-                    this.token = token;
-                    this.tokenStatus = TokenStatus.Valid;
-                },
-                error: () => {
-                    this.tokenStatus = TokenStatus.Invalid;
-                }
-            });
+    if (!token) {
+        this.tokenStatus = TokenStatus.Invalid;
+        return;
     }
+
+    this.accountService.validateResetToken(token)
+        .pipe(first())
+        .subscribe({
+            next: () => {
+                this.tokenStatus = TokenStatus.Valid;
+            },
+            error: () => {
+                this.tokenStatus = TokenStatus.Invalid;
+            }
+        });
+}
 
 
     get f() { return this.form.controls; }
