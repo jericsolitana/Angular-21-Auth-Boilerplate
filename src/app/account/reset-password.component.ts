@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { first } from 'rxjs/operators';
@@ -26,47 +26,45 @@ export class ResetPasswordComponent implements OnInit {
         private route: ActivatedRoute,
         private router: Router,
         private accountService: AccountService,
-        private alertService: AlertService
+        private alertService: AlertService,
+        private cdr: ChangeDetectorRef
     ) { }
 
-  ngOnInit() {
-    this.form = this.formBuilder.group({
-        password: ['', [Validators.required, Validators.minLength(6)]],
-        confirmPassword: ['', Validators.required],
-    }, {
-        validators: MustMatch('password', 'confirmPassword')
-    });
+    ngOnInit() {
+        this.form = this.formBuilder.group({
+            password: ['', [Validators.required, Validators.minLength(6)]],
+            confirmPassword: ['', Validators.required],
+        }, {
+            validators: MustMatch('password', 'confirmPassword')
+        });
 
-    const token = this.route.snapshot.queryParams['token'];
-    console.log('Token from URL:', token);
-    
-    this.token = token;
-    this.router.navigate([], { relativeTo: this.route, replaceUrl: true });
+        const token = this.route.snapshot.queryParams['token'];
+        console.log('Token from URL:', token);
+        
+        this.token = token;
+        this.router.navigate([], { relativeTo: this.route, replaceUrl: true });
 
-    if (!token) {
-        this.tokenStatus = TokenStatus.Invalid;
-        return;
-    }
+        if (!token) {
+            this.tokenStatus = TokenStatus.Invalid;
+            this.cdr.detectChanges();
+            return;
+        }
 
-    try {
         this.accountService.validateResetToken(token)
             .pipe(first())
             .subscribe({
                 next: () => {
                     console.log('Token valid!');
                     this.tokenStatus = TokenStatus.Valid;
+                    this.cdr.detectChanges();
                 },
                 error: (err) => {
                     console.log('Token invalid:', err);
                     this.tokenStatus = TokenStatus.Invalid;
+                    this.cdr.detectChanges();
                 }
             });
-    } catch(e) {
-        console.error('Exception:', e);
-        this.tokenStatus = TokenStatus.Invalid;
     }
-}
-
 
     get f() { return this.form.controls; }
 
@@ -74,9 +72,9 @@ export class ResetPasswordComponent implements OnInit {
         this.submitted = true;
         this.alertService.clear();
 
-    if (this.form.invalid) {
-        return
-    }
+        if (this.form.invalid) {
+            return;
+        }
 
         this.loading = true;
         this.accountService.resetPassword(this.token!, this.f['password'].value, this.f['confirmPassword'].value)
@@ -92,5 +90,4 @@ export class ResetPasswordComponent implements OnInit {
                 }
             });
     }
-    
 }
