@@ -110,13 +110,15 @@ export class AddEditComponent implements OnInit, OnDestroy {
         let saveAccount;
         let message: string;
         if (this.id) {
-            saveAccount = () => this.accountService.update(this.id!, this.form.value);
-            message = 'Account updated';
-        } else {
-            saveAccount = () => this. accountService.create(this.form.value);
-            message = 'Account created';
-
-        }
+    saveAccount = () => this.accountService.update(this.id!, this.form.value);
+    message = 'Account updated';
+} else {
+    saveAccount = () => this.accountService.create({
+        ...this.form.value,
+        acceptTerms: true  // ← admin creates accounts on behalf of users
+    });
+    message = 'Account created';
+}
 
         saveAccount()
             .pipe(first())
