@@ -24,19 +24,26 @@ export class UpdateComponent implements OnInit {
     ) { }
 
     ngOnInit() {
-        this.account = this.accountService.accountValue !;
-
-        this. form = this.formBuilder.group({
-            title: [this.account.title, Validators.required],
-            firstName: [this.account.firstName, Validators.required],
-            lastName: [this.account.lastName, Validators.required],
-            email: [this.account.email, [Validators.required, Validators.email]],
-            password: ['', [Validators.minLength(6)]],
-            confirmPassword: ['']
-        }, {
-            validator: MustMatch('password', 'confirmPassword' )
-        });
+    const account = this.accountService.accountValue;
+    
+    if (!account) {
+        this.router.navigate(['/account/login']);
+        return;
     }
+    
+    this.account = account;
+
+    this.form = this.formBuilder.group({
+        title: [this.account.title, Validators.required],
+        firstName: [this.account.firstName, Validators.required],
+        lastName: [this.account.lastName, Validators.required],
+        email: [this.account.email, [Validators.required, Validators.email]],
+        password: ['', [Validators.minLength(6)]],
+        confirmPassword: ['']
+    }, {
+        validators: MustMatch('password', 'confirmPassword')
+    });
+}
 
         // convenience getter for easy access to form fields
     get f() { return this.form.controls; }
